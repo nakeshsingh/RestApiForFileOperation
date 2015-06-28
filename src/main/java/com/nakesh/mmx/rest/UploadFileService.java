@@ -18,7 +18,10 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+<<<<<<< HEAD
 import org.apache.commons.io.FileUtils;
+=======
+>>>>>>> d44fbb889c5da0ddb45627745cb2dca1ce74122c
 import org.apache.commons.io.IOUtils;
 import org.jboss.resteasy.plugins.providers.multipart.InputPart;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
@@ -38,11 +41,15 @@ public class UploadFileService {
 		String filePath = "";
 		Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
 		List<InputPart> inputParts = uploadForm.get("uploadedFile");
+<<<<<<< HEAD
 		byte[] inputFileBytes = null;
+=======
+>>>>>>> d44fbb889c5da0ddb45627745cb2dca1ce74122c
 
 		for (InputPart inputPart : inputParts) {
 
 			MultivaluedMap<String, String> header = inputPart.getHeaders();
+<<<<<<< HEAD
 			FileManager fileManager = new FileManager();
 			fileName = fileManager.getFileName(header);
 			String contentType = header.getFirst("Content-Type");
@@ -145,13 +152,82 @@ public class UploadFileService {
 
 	private String getNextVersion(String _version) {
 		if (_version == null) {
+=======
+			String contentType = header.getFirst("Content-Type");
+			FileManager fileManager = new FileManager();
+			fileName = fileManager.getFileName(header);
+
+			byte[] bytes = getInputStream(inputPart);
+			
+			//constructs upload file path
+		    filePath = fileManager.getFilePathToUpload(fileName);
+			
+		    fileManager.writeFile(bytes, filePath);
+		    System.out.println("Input file : " + fileName + "   is written to server file");
+			
+			saveFileInDataBase(new File(filePath), contentType);
+			System.out.println("Input file : " + fileName + "   is uploaded to server database");
+			
+			List<Map<String, Object>> dataList = SqlOperation.getDataFromDataBase();
+			System.out.println("Douwnloaded files from server database");
+			
+			fileManager.writeData(dataList);
+			System.out.println("Douwnloaded files to server file");
+			
+			System.out.println("uploadFile is called ::: Uploaded file name = " + fileName + "   ::   filePath = " + filePath + "   ::   content-type = " + contentType);
+			System.out.println(".....Done.....");
+		}
+		return Response.status(200)
+				.entity("uploadFile is called ::: Uploaded file name = " + fileName + "   ::   filePath = " + filePath).build();
+
+	}
+	
+	@GET
+	@Path("/get")
+	@Produces("image/text") //@PathParam("fileName") String _fileName, @PathParam("version") String _version
+	public Response getFile(@DefaultValue("") @QueryParam("fileName") String _fileName,
+			@DefaultValue("")@QueryParam("version") String _version) {
+		String filePathDir = "/Users/nsingh/Pictures/DownloadFromServer/";
+		File file = new File(filePathDir);
+		if(!file.isDirectory()) {	
+			file.mkdirs();
+		}
+		String filePath = filePathDir + _fileName;
+		byte[] dataByte = SqlOperation.getfileFromDataBase(_fileName, _version);
+		ResponseBuilder response = null;
+		if(dataByte == null) {
+			response = Response.ok("No data is there");
+		} else {
+		FileManager fileManager = new FileManager();
+		fileManager.writeFile(dataByte, filePath);
+		File fileToSend = new File(filePath);
+			response = Response.ok((Object) fileToSend);
+		response.header("Content-Disposition",
+			"attachment; filename=" + _fileName);
+		}
+		return response.build();
+ 
+	}
+	
+	private void saveFileInDataBase(File _inputFile, String _contentType) {
+		String version = SqlOperation.getLatestVersion();
+		SqlOperation.saveToDataBase(_inputFile, _contentType, getNextVersion(version));
+	}
+	
+	private String getNextVersion(String _version) {
+		if(_version == null) {
+>>>>>>> d44fbb889c5da0ddb45627745cb2dca1ce74122c
 			return "v_1";
 		} else {
 			String[] versionArray = _version.trim().split("_");
 			return versionArray[0] + "_" + (Integer.parseInt(versionArray[1]) + 1);
 		}
 	}
+<<<<<<< HEAD
 
+=======
+	
+>>>>>>> d44fbb889c5da0ddb45627745cb2dca1ce74122c
 	private byte[] getInputStream(InputPart _inputPart) {
 		try {
 			InputStream inputStream = _inputPart.getBody(InputStream.class, null);
@@ -161,6 +237,7 @@ public class UploadFileService {
 			return null;
 		}
 	}
+<<<<<<< HEAD
 
 	private boolean validateFile(String _contentType) {
 		if (_contentType.contains("x-javascript")
@@ -216,4 +293,6 @@ public class UploadFileService {
 		System.out.println("Are the files are same? " + compareResult);
 
 	}
+=======
+>>>>>>> d44fbb889c5da0ddb45627745cb2dca1ce74122c
 }
